@@ -1,29 +1,46 @@
 package ru.t1.java.demo.aop;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import ru.t1.java.demo.model.DataSourceErrorLog;
+import ru.t1.java.demo.model.TimeLimitExceedLog;
+import ru.t1.java.demo.service.DataSourceErrorLogService;
+import ru.t1.java.demo.service.TimeLimitExceedLogService;
 
 @Slf4j
 @Aspect
 @Component
 @Order(0)
+@RequiredArgsConstructor
 public class LoggingAspect {
-    @Pointcut("within(ru.t1.java.demo.*)")
-    public void loggingMethods() {
 
-    }
+    private final DataSourceErrorLogService dataSourceErrorLogService;
+    private final TimeLimitExceedLogService timeLimitExceedLogService;
 
-    @AfterThrowing(pointcut = "execution(* ru.t1.java.demo..*(..))", throwing = "e")
+    @Value("${tle_ms}")
+    private int timeLimit;
+
+    @AfterThrowing(pointcut = "execution(* ru.t1.java.demo.controller..*(..))", throwing = "e")
     public void handleException(JoinPoint joinPoint, Exception e) {
-        log.info("AFTER EXCEPTION {}", joinPoint.getSignature().toShortString());
-        log.info("Произошла ошибка: ", e);
+        String stacktraceText = e.getStackTrace()[0].toString();
+        String message = e.getMessage();
+        String methodSignature = joinPoint.getSignature().toLongString();
+
+        var dseLog = DataSourceErrorLog.builder()
+                .stacktraceExceptionText(stacktraceText)
+                .message(message)
+                .methodSignature(methodSignature)
+                .build();
+
+        dataSourceErrorLogService.logError(dseLog);
     }
 
     @Around("@annotation(TimeLimitControl)")
@@ -33,67 +50,15 @@ public class LoggingAspect {
         Object proceed = joinPoint.proceed();
 
         long executionTime = System.currentTimeMillis() - start;
-        log.info("Method {} executed in {} ms", joinPoint.getSignature(), executionTime);
+        if (executionTime <= timeLimit) return proceed;
+
+        var tleLog = TimeLimitExceedLog.builder()
+                .methodSignature(joinPoint.getSignature().toLongString())
+                .executionTime(executionTime)
+                .build();
+
+        timeLimitExceedLogService.logTimeLimitExceed(tleLog);
 
         return proceed;
     }
-
-    /*
-    @Before("@annotation(LogExecution)")
-    @Order(1)
-    public void logAnnotationBefore(JoinPoint joinPoint) {
-        log.info("ASPECT BEFORE ANNOTATION: Call method: {}", joinPoint.getSignature().getName());
-    }
-
-    @Before("@annotation(HandlingResult)")
-    @Order(0)
-    public void logBefore(JoinPoint joinPoint) {
-        log.info("BEFORE: {}", joinPoint.getSignature().getName());
-    }
-
-    @After("@annotation(HandlingResult)")
-    @Order(0)
-    public void logExceptionAnnotation(JoinPoint joinPoint) {
-        log.error("AFTER: {}", joinPoint.getSignature().getName());
-    }
-
-    @AfterReturning(
-            pointcut = "@annotation(HandlingResult)",
-            returning = "result")
-    public void handleResult(JoinPoint joinPoint, Object result) {
-        log.info("AFTER RETURNING {}", joinPoint.getSignature().toShortString());
-    }
-
-    @Around("@annotation(ReplaceResult)")
-    @Order(1)
-    public Object replace(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("AROUND ADVICE START");
-
-
-        Client client = Client.builder()
-                .build();
-        client.setId(42L);
-
-        try {
-            Object proceed = joinPoint.proceed();
-        } catch (Throwable throwable) {
-            log.error(throwable.getMessage());
-            throw  throwable;
-        }
-
-        log.info("AROUND ADVICE END");
-        return client;
-    }
-
-
-    @AfterThrowing(pointcut = "@annotation(LoggableException)",
-            throwing = "e")
-    @Order(0)
-    public void handleException(JoinPoint joinPoint, Exception e) {
-        log.info("AFTER EXCEPTION {}",
-                joinPoint.getSignature().toShortString());
-        log.info("Произошла ошибка: ", e);
-
-    }
-    */
 }

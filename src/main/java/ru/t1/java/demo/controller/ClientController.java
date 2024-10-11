@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.t1.java.demo.aop.HandlingResult;
 import ru.t1.java.demo.aop.LoggableException;
+import ru.t1.java.demo.aop.TimeLimitControl;
 import ru.t1.java.demo.kafka.KafkaClientProducer;
 import ru.t1.java.demo.model.Client;
 import ru.t1.java.demo.repository.ClientRepository;
@@ -51,5 +52,21 @@ public class ClientController {
     @GetMapping("/throw")
     public void throwException() {
         throw new RuntimeException("test exception");
+    }
+
+    @GetMapping("/measure5")
+    @TimeLimitControl
+    public String executeForFiveSeconds() throws InterruptedException {
+        Thread.sleep(5000);
+
+        return "succeed";
+    }
+
+    @GetMapping("/measure1")
+    @TimeLimitControl
+    public String executeForOneSecond() throws InterruptedException {
+        Thread.sleep(1000);
+
+        return "succeed";
     }
 }

@@ -18,11 +18,12 @@ spring:
 security:
   token: tstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5htstrs4g434wyhser5h
   expiration: 86400000
-
+tle_ms: 2000
 logging:
   level:
     ROOT: ERROR
     ru.t1.java.demo.controller.ClientController: ERROR
+    ru.t1.java.demo.aop.LoggingAspect: INFO
     org.apache.kafka: ERROR
     org.hibernate.SQL: ERROR
 
