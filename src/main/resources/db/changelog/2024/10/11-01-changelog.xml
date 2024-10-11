@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1728665683861-1" author="Denec">
+        <createSequence incrementBy="50" sequenceName="account_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-2" author="Denec">
+        <createSequence incrementBy="50" sequenceName="client_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-3" author="Denec">
+        <createSequence incrementBy="50" sequenceName="data_source_error_log_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-4" author="Denec">
+        <createSequence incrementBy="50" sequenceName="role_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-5" author="Denec">
+        <createSequence incrementBy="50" sequenceName="time_limit_exceed_log_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-6" author="Denec">
+        <createSequence incrementBy="50" sequenceName="transaction_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-7" author="Denec">
+        <createSequence incrementBy="50" sequenceName="users_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1728665683861-8" author="Denec">
+        <createTable tableName="account">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_account"/>
+            </column>
+            <column name="balance" type="DECIMAL"/>
+            <column name="account_type" type="VARCHAR(20)"/>
+            <column name="client_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-9" author="Denec">
+        <createTable tableName="client">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_client"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="middle_name" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-10" author="Denec">
+        <createTable tableName="data_source_error_log">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_data_source_error_log"/>
+            </column>
+            <column name="stacktrace_exception_text" type="VARCHAR(255)"/>
+            <column name="message" type="VARCHAR(255)"/>
+            <column name="method_signature" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-11" author="Denec">
+        <createTable tableName="role">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_role"/>
+            </column>
+            <column name="name" type="VARCHAR(20)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-12" author="Denec">
+        <createTable tableName="time_limit_exceed_log">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_time_limit_exceed_log"/>
+            </column>
+            <column name="method_signature" type="VARCHAR(255)"/>
+            <column name="execution_time" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-13" author="Denec">
+        <createTable tableName="transaction">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_transaction"/>
+            </column>
+            <column name="amount" type="DECIMAL(19, 2)"/>
+            <column name="client_id" type="BIGINT"/>
+            <column name="account_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-14" author="Denec">
+        <createTable tableName="user_roles">
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_roles"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_roles"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-15" author="Denec">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
+            </column>
+            <column name="login" type="VARCHAR(20)"/>
+            <column name="email" type="VARCHAR(50)"/>
+            <column name="password" type="VARCHAR(120)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1728665683861-16" author="Denec">
+        <addUniqueConstraint columnNames="email" constraintName="uc_74165e195b2f7b25de690d14a" tableName="users"/>
+    </changeSet>
+    <changeSet id="1728665683861-17" author="Denec">
+        <addUniqueConstraint columnNames="login" constraintName="uc_f8d2576e807e2b20b506bf6a3" tableName="users"/>
+    </changeSet>
+    <changeSet id="1728665683861-18" author="Denec">
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="user_roles" constraintName="fk_userol_on_role"
+                                 referencedColumnNames="id" referencedTableName="role"/>
+    </changeSet>
+    <changeSet id="1728665683861-19" author="Denec">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_roles" constraintName="fk_userol_on_user"
+                                 referencedColumnNames="id" referencedTableName="users"/>
+    </changeSet>
+</databaseChangeLog>
