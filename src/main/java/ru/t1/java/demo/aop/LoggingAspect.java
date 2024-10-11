@@ -3,31 +3,47 @@ package ru.t1.java.demo.aop;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ru.t1.java.demo.model.Client;
-
-import java.util.List;
-
-import static java.util.Objects.isNull;
 
 @Slf4j
 @Aspect
 @Component
 @Order(0)
 public class LoggingAspect {
-
     @Pointcut("within(ru.t1.java.demo.*)")
     public void loggingMethods() {
 
     }
 
-//    @Before("@annotation(LogExecution)")
-//    @Order(1)
-//    public void logAnnotationBefore(JoinPoint joinPoint) {
-//        log.info("ASPECT BEFORE ANNOTATION: Call method: {}", joinPoint.getSignature().getName());
-//    }
+    @AfterThrowing(pointcut = "execution(* ru.t1.java.demo..*(..))", throwing = "e")
+    public void handleException(JoinPoint joinPoint, Exception e) {
+        log.info("AFTER EXCEPTION {}", joinPoint.getSignature().toShortString());
+        log.info("Произошла ошибка: ", e);
+    }
+
+    @Around("@annotation(TimeLimitControl)")
+    public Object handleTimeLimitExceeded(ProceedingJoinPoint joinPoint) throws Throwable {
+        long start = System.currentTimeMillis();
+
+        Object proceed = joinPoint.proceed();
+
+        long executionTime = System.currentTimeMillis() - start;
+        log.info("Method {} executed in {} ms", joinPoint.getSignature(), executionTime);
+
+        return proceed;
+    }
+
+    /*
+    @Before("@annotation(LogExecution)")
+    @Order(1)
+    public void logAnnotationBefore(JoinPoint joinPoint) {
+        log.info("ASPECT BEFORE ANNOTATION: Call method: {}", joinPoint.getSignature().getName());
+    }
 
     @Before("@annotation(HandlingResult)")
     @Order(0)
@@ -79,5 +95,5 @@ public class LoggingAspect {
         log.info("Произошла ошибка: ", e);
 
     }
-
+    */
 }

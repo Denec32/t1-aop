@@ -21,10 +21,10 @@ security:
 
 logging:
   level:
-    ROOT: DEBUG
-    ru.t1.java.demo.controller.ClientController: DEBUG
-    org.apache.kafka: INFO
-    org.hibernate.SQL: INFO
+    ROOT: ERROR
+    ru.t1.java.demo.controller.ClientController: ERROR
+    org.apache.kafka: ERROR
+    org.hibernate.SQL: ERROR
 
 t1:
   scan-path: ru.t1.java.demo

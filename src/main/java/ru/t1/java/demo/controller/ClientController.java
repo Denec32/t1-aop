@@ -47,4 +47,9 @@ public class ClientController {
     public String adminAccess() {
         return "Admin Board.";
     }
+
+    @GetMapping("/throw")
+    public void throwException() {
+        throw new RuntimeException("test exception");
+    }
 }
