@@ -28,7 +28,7 @@
     </changeSet>
     <changeSet id="1728665683861-8" author="Denec">
         <createTable tableName="account">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_account"/>
             </column>
             <column name="balance" type="DECIMAL"/>
@@ -38,7 +38,7 @@
     </changeSet>
     <changeSet id="1728665683861-9" author="Denec">
         <createTable tableName="client">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_client"/>
             </column>
             <column name="first_name" type="VARCHAR(255)"/>
@@ -48,7 +48,7 @@
     </changeSet>
     <changeSet id="1728665683861-10" author="Denec">
         <createTable tableName="data_source_error_log">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_data_source_error_log"/>
             </column>
             <column name="stacktrace_exception_text" type="VARCHAR(255)"/>
@@ -58,7 +58,7 @@
     </changeSet>
     <changeSet id="1728665683861-11" author="Denec">
         <createTable tableName="role">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_role"/>
             </column>
             <column name="name" type="VARCHAR(20)"/>
@@ -66,7 +66,7 @@
     </changeSet>
     <changeSet id="1728665683861-12" author="Denec">
         <createTable tableName="time_limit_exceed_log">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_time_limit_exceed_log"/>
             </column>
             <column name="method_signature" type="VARCHAR(255)"/>
@@ -75,7 +75,7 @@
     </changeSet>
     <changeSet id="1728665683861-13" author="Denec">
         <createTable tableName="transaction">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_transaction"/>
             </column>
             <column name="amount" type="DECIMAL(19, 2)"/>
@@ -95,7 +95,7 @@
     </changeSet>
     <changeSet id="1728665683861-15" author="Denec">
         <createTable tableName="users">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGSERIAL">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_users"/>
             </column>
             <column name="login" type="VARCHAR(20)"/>
