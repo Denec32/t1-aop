@@ -11,7 +11,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class KafkaClientProducer<T extends ClientDto> {
+public class KafkaClientProducer {
 
     private final KafkaTemplate template;
 
