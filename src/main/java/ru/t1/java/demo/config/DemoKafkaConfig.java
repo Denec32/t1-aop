@@ -46,7 +46,6 @@ public class DemoKafkaConfig<T> {
     @Value("${t1.kafka.topic.client_id_registered}")
     private String clientTopic;
 
-
     @Bean
     public ConsumerFactory<String, ClientDto> consumerListenerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -63,11 +62,10 @@ public class DemoKafkaConfig<T> {
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalsMs);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, Boolean.FALSE);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, MessageDeserializer.class.getName());
         props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, MessageDeserializer.class);
 
-        DefaultKafkaConsumerFactory factory = new DefaultKafkaConsumerFactory<String, ClientDto>(props);
+        DefaultKafkaConsumerFactory<String, ClientDto> factory = new DefaultKafkaConsumerFactory<>(props);
         factory.setKeyDeserializer(new StringDeserializer());
 
         return factory;
@@ -78,25 +76,6 @@ public class DemoKafkaConfig<T> {
         ConcurrentKafkaListenerContainerFactory<String, ClientDto> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factoryBuilder(consumerFactory, factory);
         return factory;
-    }
-
-    private <T> void factoryBuilder(ConsumerFactory<String, T> consumerFactory, ConcurrentKafkaListenerContainerFactory<String, T> factory) {
-        factory.setConsumerFactory(consumerFactory);
-        factory.setBatchListener(true);
-        factory.setConcurrency(1);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.getContainerProperties().setPollTimeout(5000);
-        factory.getContainerProperties().setMicrometerEnabled(true);
-        factory.setCommonErrorHandler(errorHandler());
-    }
-
-    private CommonErrorHandler errorHandler() {
-        DefaultErrorHandler handler = new DefaultErrorHandler(new FixedBackOff(1000, 3));
-        handler.addNotRetryableExceptions(IllegalStateException.class);
-        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
-            log.error(" RetryListeners message = {}, offset = {} deliveryAttempt = {}", ex.getMessage(), record.offset(), deliveryAttempt);
-        });
-        return handler;
     }
 
     @Bean("client")
@@ -124,4 +103,22 @@ public class DemoKafkaConfig<T> {
         return new DefaultKafkaProducerFactory<>(props);
     }
 
+    private <T> void factoryBuilder(ConsumerFactory<String, T> consumerFactory, ConcurrentKafkaListenerContainerFactory<String, T> factory) {
+        factory.setConsumerFactory(consumerFactory);
+        factory.setBatchListener(true);
+        factory.setConcurrency(1);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.getContainerProperties().setPollTimeout(5000);
+        factory.getContainerProperties().setMicrometerEnabled(true);
+        factory.setCommonErrorHandler(errorHandler());
+    }
+
+    private CommonErrorHandler errorHandler() {
+        DefaultErrorHandler handler = new DefaultErrorHandler(new FixedBackOff(1000, 3));
+        handler.addNotRetryableExceptions(IllegalStateException.class);
+        handler.setRetryListeners((record, ex, deliveryAttempt) -> {
+            log.error(" RetryListeners message = {}, offset = {} deliveryAttempt = {}", ex.getMessage(), record.offset(), deliveryAttempt);
+        });
+        return handler;
+    }
 }
