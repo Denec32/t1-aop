@@ -13,9 +13,10 @@ public class KafkaTleProducer {
     public void sendMessage(TimeLimitExceedLog tleLog) {
         try {
             template.sendDefault(tleLog).get();
-            template.flush();
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
+        } finally {
+            template.flush();
         }
     }
 }

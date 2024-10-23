@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import ru.t1.java.demo.model.dto.AccountDto;
 import ru.t1.java.demo.service.AccountService;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -16,9 +19,9 @@ public class KafkaAccountConsumer {
 
     @KafkaListener(topics = "${t1.kafka.topic.account_created}",
             containerFactory = "accountKafkaListenerContainerFactory")
-    public void listen(AccountDto message, Acknowledgment ack) {
+    public void listen(@Payload List<AccountDto> messages, Acknowledgment ack) {
         try {
-            accountService.addAccount(message);
+            messages.forEach(accountService::addAccount);
         }
         catch (Exception e) {
             log.error("Account consumer:  ошибка записи: {}", e.getMessage());
