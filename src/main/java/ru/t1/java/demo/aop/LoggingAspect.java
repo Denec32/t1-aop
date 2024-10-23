@@ -10,10 +10,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import ru.t1.java.demo.kafka.KafkaTleProducer;
 import ru.t1.java.demo.model.DataSourceErrorLog;
 import ru.t1.java.demo.model.TimeLimitExceedLog;
 import ru.t1.java.demo.service.DataSourceErrorLogService;
-import ru.t1.java.demo.service.TimeLimitExceedLogService;
 
 @Slf4j
 @Aspect
@@ -21,9 +21,8 @@ import ru.t1.java.demo.service.TimeLimitExceedLogService;
 @Order(0)
 @RequiredArgsConstructor
 public class LoggingAspect {
-
     private final DataSourceErrorLogService dataSourceErrorLogService;
-    private final TimeLimitExceedLogService timeLimitExceedLogService;
+    private final KafkaTleProducer tleProducer;
 
     @Value("${tle_ms}")
     private int timeLimit;
@@ -47,7 +46,13 @@ public class LoggingAspect {
     public Object handleTimeLimitExceeded(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 
-        Object proceed = joinPoint.proceed();
+        Object proceed = null;
+        try {
+            proceed = joinPoint.proceed();
+        }
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
 
         long executionTime = System.currentTimeMillis() - start;
         if (executionTime <= timeLimit) return proceed;
@@ -57,7 +62,11 @@ public class LoggingAspect {
                 .executionTime(executionTime)
                 .build();
 
-        timeLimitExceedLogService.logTimeLimitExceed(tleLog);
+        try {
+            tleProducer.sendMessage(tleLog);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
 
         return proceed;
     }

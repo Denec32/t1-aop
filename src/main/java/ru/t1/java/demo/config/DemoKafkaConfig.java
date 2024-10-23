@@ -12,7 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.*;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -21,7 +25,9 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 import ru.t1.java.demo.kafka.KafkaClientProducer;
+import ru.t1.java.demo.kafka.KafkaTleProducer;
 import ru.t1.java.demo.kafka.MessageDeserializer;
+import ru.t1.java.demo.model.TimeLimitExceedLog;
 import ru.t1.java.demo.model.dto.AccountDto;
 import ru.t1.java.demo.model.dto.ClientDto;
 import ru.t1.java.demo.model.dto.TransactionDto;
@@ -47,6 +53,8 @@ public class DemoKafkaConfig<T> {
     private String maxPollIntervalsMs;
     @Value("${t1.kafka.topic.client_id_registered}")
     private String clientTopic;
+    @Value("${t1.kafka.topic.metric_race}")
+    private String tleTopic;
 
     @Bean
     public ConsumerFactory<String, ClientDto> consumerListenerFactory() {
@@ -108,6 +116,26 @@ public class DemoKafkaConfig<T> {
         return factory;
     }
 
+    @Bean("tle")
+    public KafkaTemplate<String, T> kafkaTleTemplate(@Qualifier("producerTleFactory") ProducerFactory<String, T> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "t1.kafka.producer.enable",
+            havingValue = "true",
+            matchIfMissing = true)
+    public KafkaTleProducer producerTle(@Qualifier("tle") KafkaTemplate<String, TimeLimitExceedLog> template) {
+        template.setDefaultTopic(tleTopic);
+        return new KafkaTleProducer(template);
+    }
+
+    @Bean("producerTleFactory")
+    public ProducerFactory<String, T> producerTleFactory() {
+        Map<String, Object> props = producerConfigs();
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+
     @Bean("client")
     @Primary
     public KafkaTemplate<String, T> kafkaClientTemplate(@Qualifier("producerClientFactory") ProducerFactory<String, T> producerPatFactory) {
@@ -125,12 +153,20 @@ public class DemoKafkaConfig<T> {
 
     @Bean("producerClientFactory")
     public ProducerFactory<String, T> producerClientFactory() {
+        Map<String, Object> props = producerConfigs();
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
+
+    @Bean
+    public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, false);
-        return new DefaultKafkaProducerFactory<>(props);
+
+        return props;
     }
 
     @Bean

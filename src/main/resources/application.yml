@@ -42,6 +42,7 @@ t1:
       client_id_registered: t1_demo_client_registered
       transaction_created: t1_demo_transactions
       account_created: t1_demo_accounts
+      metric_race: t1_demo_metric_trace
     listener:
       poll-timeout: 1000
 
