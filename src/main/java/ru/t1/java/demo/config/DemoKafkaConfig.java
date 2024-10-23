@@ -116,24 +116,15 @@ public class DemoKafkaConfig<T> {
         return factory;
     }
 
-    @Bean("tle")
-    public KafkaTemplate<String, T> kafkaTleTemplate(@Qualifier("producerTleFactory") ProducerFactory<String, T> producerFactory) {
-        return new KafkaTemplate<>(producerFactory);
-    }
-
     @Bean
-    @ConditionalOnProperty(value = "t1.kafka.producer.enable",
-            havingValue = "true",
-            matchIfMissing = true)
-    public KafkaTleProducer producerTle(@Qualifier("tle") KafkaTemplate<String, TimeLimitExceedLog> template) {
-        template.setDefaultTopic(tleTopic);
-        return new KafkaTleProducer(template);
-    }
-
-    @Bean("producerTleFactory")
-    public ProducerFactory<String, T> producerTleFactory() {
+    @ConditionalOnProperty(value = "t1.kafka.producer.enable", havingValue = "true", matchIfMissing = true)
+    public KafkaTleProducer producerTle() {
         Map<String, Object> props = producerConfigs();
-        return new DefaultKafkaProducerFactory<>(props);
+        var producerFactory = new DefaultKafkaProducerFactory<String, TimeLimitExceedLog>(props);
+        var template = new KafkaTemplate<>(producerFactory);
+        template.setDefaultTopic(tleTopic);
+
+        return new KafkaTleProducer(template);
     }
 
     @Bean("client")
@@ -156,7 +147,6 @@ public class DemoKafkaConfig<T> {
         Map<String, Object> props = producerConfigs();
         return new DefaultKafkaProducerFactory<>(props);
     }
-    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
 
     @Bean
     public Map<String, Object> producerConfigs() {
